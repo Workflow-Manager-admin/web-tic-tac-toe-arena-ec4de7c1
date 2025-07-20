@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
+import Assistant from "./Assistant";
 
 /**
  * Color Theme Constants (provided in requirements)
@@ -263,6 +264,47 @@ function App() {
         </div>
       </div>
       <TTTStyles />
+      <Assistant
+        board={board}
+        isXNext={isXNext}
+        winner={winner}
+        gameOver={gameOver}
+        mode={mode}
+        // Assistant suggestion logic (uses core AI, but picks for the "current user")
+        suggestMove={(b, player) => {
+          // We must reuse the same logic used in game AI, but allow for X or O (user may ask at any point)
+          // Helper: try to find winning, block, center, corners, or side
+          const opp = player === "X" ? "O" : "X";
+          // Try winning move for player
+          for (let i = 0; i < 9; i++) {
+            if (!b[i]) {
+              const clone = b.slice();
+              clone[i] = player;
+              if (calculateWinner(clone) === player) return i;
+            }
+          }
+          // Block opponent's win
+          for (let i = 0; i < 9; i++) {
+            if (!b[i]) {
+              const clone = b.slice();
+              clone[i] = opp;
+              if (calculateWinner(clone) === opp) return i;
+            }
+          }
+          // Center
+          if (!b[4]) return 4;
+          // Corners
+          const corners = [0, 2, 6, 8],
+            openCorners = corners.filter((i) => !b[i]);
+          if (openCorners.length) return openCorners[0];
+          // Sides
+          const sides = [1, 3, 5, 7],
+            openSides = sides.filter((i) => !b[i]);
+          if (openSides.length) return openSides[0];
+          // Board full
+          return null;
+        }}
+      />
     </div>
   );
 }
